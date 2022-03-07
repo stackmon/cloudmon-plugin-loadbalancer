@@ -20,7 +20,6 @@ RUN adduser \
 WORKDIR /cloudmon
 
 # copy over your manifests
-COPY ./Cargo.lock ./Cargo.lock
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./src ./src
 
