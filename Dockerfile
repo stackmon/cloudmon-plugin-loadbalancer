@@ -1,5 +1,6 @@
 FROM rust:latest AS builder
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN rustup target add x86_64-unknown-linux-musl
 RUN apt update && apt install -y musl-tools musl-dev
 RUN update-ca-certificates
@@ -23,7 +24,7 @@ WORKDIR /cloudmon
 COPY ./Cargo.toml ./Cargo.toml
 COPY ./src ./src
 
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --target x86_64-unknown-linux-musl --release -v
 
 ##############
 ## Final image
