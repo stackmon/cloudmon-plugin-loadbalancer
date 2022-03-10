@@ -1,0 +1,185 @@
+annotations:
+  list:
+    - builtIn: 1
+      datasource: -- Grafana --
+      enable: true
+      hide: true
+      iconColor: rgba(0, 211, 255, 1)
+      name: Annotations & Alerts
+      target:
+        limit: 100
+        matchAny: false
+        tags: ["JIRA_CM"]
+        type: tags
+      type: tags
+panels:
+  - datasource: '$cloudmon_datasource'
+    fieldConfig:
+      defaults:
+        color:
+          mode: palette-classic
+        custom:
+          axisLabel: ''
+          axisPlacement: auto
+          barAlignment: 0
+          drawStyle: line
+          fillOpacity: 10
+          gradientMode: none
+          hideFrom:
+            legend: false
+            tooltip: false
+            viz: false
+          lineInterpolation: linear
+          lineWidth: 1
+          pointSize: 5
+          scaleDistribution:
+            type: linear
+          showPoints: never
+          spanNulls: true
+          stacking:
+            group: A
+            mode: none
+          thresholdsStyle:
+            mode: 'off'
+        decimals: 0
+        mappings: []
+        min: 0
+        thresholds:
+          mode: absolute
+          steps:
+            - color: green
+              value: null
+            - color: red
+              value: 80
+        unit: ms
+      overrides: []
+    gridPos:
+      h: 9
+      w: 24
+      x: 0
+      y: 0
+    id: 2
+    options:
+      legend:
+        calcs:
+          - lastNotNull
+        displayMode: table
+        placement: right
+      tooltip:
+        mode: single
+        sort: none
+    targets:
+      - refId: A
+        target: groupByNode(stats.timers.apimon.metric.$environment.$zone.csm_lb_timings.public.*.*.mean,
+          8, 'avg')
+    title: LoadBalancer Latency per type
+    type: timeseries
+  - datasource: '$cloudmon_datasource'
+    fieldConfig:
+      defaults:
+        color:
+          mode: palette-classic
+        custom:
+          axisLabel: ''
+          axisPlacement: auto
+          barAlignment: 0
+          drawStyle: line
+          fillOpacity: 10
+          gradientMode: none
+          hideFrom:
+            legend: false
+            tooltip: false
+            viz: false
+          lineInterpolation: linear
+          lineWidth: 1
+          pointSize: 5
+          scaleDistribution:
+            type: linear
+          showPoints: never
+          spanNulls: true
+          stacking:
+            group: A
+            mode: none
+          thresholdsStyle:
+            mode: 'off'
+        decimals: 0
+        mappings: []
+        min: 0
+        thresholds:
+          mode: absolute
+          steps:
+            - color: green
+              value: null
+            - color: red
+              value: 80
+        unit: ms
+      overrides: []
+    gridPos:
+      h: 8
+      w: 24
+      x: 0
+      y: 9
+    id: 4
+    options:
+      legend:
+        calcs:
+          - lastNotNull
+        displayMode: table
+        placement: right
+      tooltip:
+        mode: single
+        sort: none
+    targets:
+      - refId: A
+        target: groupByNode(stats.timers.apimon.metric.$environment.$zone.csm_lb_timings.public.*.*.mean,
+          9, 'avg')
+    title: LoadBalancer Latency per AZ
+    type: timeseries
+templating:
+  list:
+    - current:
+        selected: true
+        text:
+          - All
+        value:
+          - $__all
+      datasource: '$cloudmon_datasource'
+      definition: stats.counters.cloudmon.*
+      hide: 0
+      includeAll: true
+      label: Environment
+      multi: true
+      name: environment
+      options: []
+      query: stats.counters.cloudmon.*
+      refresh: 1
+      regex: ''
+      skipUrlSync: false
+      sort: 0
+      type: query
+    - current:
+        selected: true
+        text:
+          - All
+        value:
+          - $__all
+      datasource: '$cloudmon_datasource'
+      definition: stats.counters.cloudmon.*.*
+      hide: 0
+      includeAll: true
+      label: Zone
+      multi: true
+      name: zone
+      options: []
+      query: stats.counters.cloudmon.*.*
+      refresh: 1
+      regex: ''
+      skipUrlSync: false
+      sort: 0
+      type: query
+time:
+  from: now-7d
+  to: now
+title: LoadBalancer
+uid: CmonLb
+version: 1
