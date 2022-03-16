@@ -20,9 +20,15 @@ struct Config {
     timeout: u8,
     #[serde(default = "default_check_interval")]
     interval: u8,
-    address: String,
-    listeners: Vec<Listener>,
+    loadbalancers: Vec<Loadbalancer>,
     statsd: Statsd,
+}
+
+#[derive(Debug, Deserialize)]
+struct Loadbalancer {
+    address: String,
+    name: String,
+    listeners: Vec<Listener>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -73,35 +79,39 @@ fn main() {
         .build()
         .unwrap();
     while !term.load(Ordering::Relaxed) {
-        for lsnr in config.listeners.iter() {
-            log::debug!("Checking port {}", lsnr.port);
-            let start = Instant::now();
-            match req_client
-                .get(format!(
-                    "http{}://{}:{}",
-                    if lsnr.mode == "https" { "s" } else { "" },
-                    config.address,
-                    lsnr.port
-                ))
-                .send()
-            {
-                Ok(rsp) => match rsp.headers().get("Backend-Server") {
-                    Some(srv) => match re.captures(&srv.to_str().unwrap()) {
-                        Some(m) => {
-                            log::debug!("res = {}", &m[1]);
-                            let duration = start.elapsed();
-                            statsd_client.timer(
-                                &format!("loadbalancer.{}.{}", lsnr.mode, &m[1]),
-                                duration.as_millis() as f64,
-                            );
-                        }
+        for lb in config.loadbalancers.iter() {
+            log::debug!("Checking Loadbalancer {}", lb.name);
+            for lsnr in lb.listeners.iter() {
+                log::debug!("Checking port {}", lsnr.port);
+                let start = Instant::now();
+                match req_client
+                    .get(format!(
+                        "http{}://{}:{}",
+                        if lsnr.mode == "https" { "s" } else { "" },
+                        lb.address,
+                        lsnr.port
+                    ))
+                    .send()
+                {
+                    Ok(rsp) => match rsp.headers().get("Backend-Server") {
+                        Some(srv) => match re.captures(&srv.to_str().unwrap()) {
+                            Some(m) => {
+                                log::debug!("res = {}", &m[1]);
+                                let duration = start.elapsed();
+                                statsd_client.timer(
+                                    &format!("loadbalancer.{}.{}.{}", lb.name, lsnr.mode, &m[1]),
+                                    duration.as_millis() as f64,
+                                );
+                            }
+                            None => log::error!("Cannot detect response AZ"),
+                        },
                         None => log::error!("Cannot detect response AZ"),
                     },
-                    None => log::error!("Cannot detect response AZ"),
-                },
-                Err(e) => {
-                    log::error!("Error {}", e);
-                    statsd_client.incr(&format!("loadbalancer.{}.failed", lsnr.mode));
+                    Err(e) => {
+                        log::error!("Error {}", e);
+                        statsd_client
+                            .incr(&format!("loadbalancer.{}.{}.failed", lb.name, lsnr.mode));
+                    }
                 }
             }
         }
