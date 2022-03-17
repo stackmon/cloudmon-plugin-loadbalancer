@@ -70,8 +70,8 @@ panels:
         sort: none
     targets:
       - refId: A
-        target: groupByNode(stats.timers.apimon.metric.$environment.$zone.csm_lb_timings.public.*.*.mean,
-          8, 'avg')
+        target: groupByNodes(stats.timers.cloudmon.$environment.$zone.loadbalancer.$loadbalancer.*.*.mean,
+          'avg', 3, 4, 7)
     title: LoadBalancer Latency per type
     type: timeseries
   - datasource: '$cloudmon_datasource'
@@ -131,10 +131,98 @@ panels:
         sort: none
     targets:
       - refId: A
-        target: groupByNode(stats.timers.apimon.metric.$environment.$zone.csm_lb_timings.public.*.*.mean,
-          9, 'avg')
+        target: groupByNodes(stats.timers.cloudmon.$environment.$zone.loadbalancer.$loadbalancer.*.*.mean,
+          'avg', 3, 4, 8)
     title: LoadBalancer Latency per AZ
     type: timeseries
+  - datasource: '$cloudmon_datasource'
+    fieldConfig:
+      defaults:
+        color:
+          mode: palette-classic
+        custom:
+          hideFrom:
+            legend: false
+            tooltip: false
+            viz: false
+        mappings: []
+        unit: short
+      overrides: []
+    gridPos:
+      h: 6
+      w: 6
+      x: 0
+      y: 16
+    id: 6
+    options:
+      displayLabels:
+        - name
+      legend:
+        displayMode: list
+        placement: bottom
+        values:
+          - percent
+      pieType: donut
+      reduceOptions:
+        calcs:
+          - lastNotNull
+        fields: ''
+        values: false
+      tooltip:
+        mode: single
+        sort: none
+    pluginVersion: 8.4.0
+    targets:
+      - datasource: '$cloudmon_datasource'
+        refId: A
+        target: aliasByMetric(aggregateLine(groupByNode(stats.timers.cloudmon.$environment.$zone.loadbalancer.$loadbalancer.*.*.count,
+          8, 'sum'), 'sum', false))
+    title: Request distribution per AZ
+    type: piechart
+  - datasource: '$cloudmon_datasource'
+    fieldConfig:
+      defaults:
+        color:
+          mode: palette-classic
+        custom:
+          hideFrom:
+            legend: false
+            tooltip: false
+            viz: false
+        mappings: []
+        unit: ms
+      overrides: []
+    gridPos:
+      h: 6
+      w: 6
+      x: 6
+      y: 16
+    id: 7
+    options:
+      displayLabels:
+        - value
+        - name
+      legend:
+        displayMode: list
+        placement: bottom
+        values: []
+      pieType: donut
+      reduceOptions:
+        calcs:
+          - lastNotNull
+        fields: ''
+        values: false
+      tooltip:
+        mode: single
+        sort: none
+    pluginVersion: 8.4.0
+    targets:
+      - datasource: '$cloudmon_datasource'
+        refId: A
+        target: consolidateBy(groupByNode(stats.timers.cloudmon.$environment.$zone.loadbalancer.$loadbalancer.*.*.mean,
+          7, 'avg'), 'avg')
+    title: Request duration per listener type
+    type: piechart
 templating:
   list:
     - current:
@@ -172,6 +260,26 @@ templating:
       name: zone
       options: []
       query: stats.counters.cloudmon.*.*
+      refresh: 1
+      regex: ''
+      skipUrlSync: false
+      sort: 0
+      type: query
+    - current:
+        selected: true
+        text:
+          - All
+        value:
+          - $__all
+      datasource: '$cloudmon_datasource'
+      definition: stats.timers.cloudmon.*.*.loadbalancer.*
+      hide: 0
+      includeAll: true
+      label: Zone
+      multi: true
+      name: zone
+      options: []
+      query: stats.timers.cloudmon.*.*.loadbalancer.*
       refresh: 1
       regex: ''
       skipUrlSync: false
