@@ -98,21 +98,25 @@ fn main() {
                             Some(m) => {
                                 log::debug!("res = {}", &m[1]);
                                 let duration = start.elapsed();
-                                statsd_client.timer(
-                                    &format!("loadbalancer.{}.{}.{}", lb.name, lsnr.mode, &m[1]),
-                                    duration.as_millis() as f64,
+                                statsd_client
+                                    .timer(
+                                        &format!("loadbalancer.{}.{}.{}", lb.name, lsnr.mode, &m[1]),
+                                        duration.as_millis() as f64,
                                 );
-                            }
+                            },
                             None => log::error!("Cannot detect response AZ"),
                         },
                         None => log::error!("Cannot detect response AZ"),
                     },
                     Err(e) => {
-                        log::error!("Error {}", e);
+                        log::error!("{}", e);
                         statsd_client
                             .incr(&format!("loadbalancer.{}.{}.failed", lb.name, lsnr.mode));
                     }
                 }
+                /* Increase attempted at the end to avoid timeout data shift */
+                statsd_client
+                    .incr(&format!("loadbalancer.{}.{}.attempted", lb.name, lsnr.mode));
             }
         }
         sleep(interval);
