@@ -171,7 +171,6 @@ panels:
       tooltip:
         mode: single
         sort: none
-    pluginVersion: 8.4.0
     targets:
       - datasource: '$cloudmon_datasource'
         refId: A
@@ -215,7 +214,6 @@ panels:
       tooltip:
         mode: single
         sort: none
-    pluginVersion: 8.4.0
     targets:
       - datasource: '$cloudmon_datasource'
         refId: A
@@ -223,6 +221,46 @@ panels:
           7, 'avg'), 'avg')
     title: Request duration per listener type
     type: piechart
+  - datasource: '$cloudmon_datasource'
+    gridPos:
+      x: 12
+      y: 16
+      w: 12
+      h: 6
+    type: status-history
+    title: Failures
+    targets:
+      - refId: A
+        datasource: '$cloudmon_datasource'
+        target: aliasByNode(applyByNode(stats.counters.cloudmon.$environment.$zone.loadbalancer.$loadbalancer.*.*.count,
+          '7', 'asPercent(sumSeries(%.failed.count), sumSeries(%.attempted.count))', '%'), 3, 4, 6, 7)
+    options:
+      showValue: auto
+      rowHeight: 0.9
+      colWidth: 0.9
+      legend:
+        displayMode: hidden
+        placement: bottom
+      tooltip:
+        mode: none
+        sort: none
+    fieldConfig:
+      defaults:
+        custom:
+          lineWidth: 1
+          fillOpacity: 70
+        color:
+          mode: thresholds
+        mappings: []
+        thresholds:
+          mode: percentage
+          steps:
+            - color: green
+              value: null
+            - color: red
+              value: 10
+        unit: percent
+        max: 100
 templating:
   list:
     - current:
@@ -272,14 +310,14 @@ templating:
         value:
           - $__all
       datasource: '$cloudmon_datasource'
-      definition: stats.timers.cloudmon.*.*.loadbalancer.*
+      definition: stats.counters.cloudmon.*.*.loadbalancer.*
       hide: 0
       includeAll: true
-      label: Zone
+      label: Loadbalancer
       multi: true
-      name: zone
+      name: loadbalancer
       options: []
-      query: stats.timers.cloudmon.*.*.loadbalancer.*
+      query: stats.counters.cloudmon.*.*.loadbalancer.*
       refresh: 1
       regex: ''
       skipUrlSync: false
